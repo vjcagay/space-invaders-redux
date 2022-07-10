@@ -1,13 +1,13 @@
 {
-  "name": "sass",
+  "name": "space-invaders-redux",
   "version": "0.1.0",
-  "description": "Example project showing how to use Sass middleware",
+  "description": "Space Invaders, reimagined.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "engines": {
-    "node": "~18"
+    "node": ">=10"
   },
   "keywords": [
     "node",
@@ -16,7 +16,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.1",
-    "node-sass-middleware": "^1.0.1"
+    "express": "^4.18.1"
   }
 }

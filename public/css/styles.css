@@ -1,0 +1,22 @@
+/* Press Start 2P font */
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+}
+
+.canvas {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+  background-color: black;
+}
+
+.alien {
+  background-image: url("/img/sprites.png");
+  background-size: cover;
+  cursor: pointer;
+}
