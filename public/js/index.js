@@ -1,4 +1,4 @@
-import { Sprite } from "./sprite.js";
+import { Alien } from "./alien.js";
 
 let canvasWidth = 0;
 let canvasHeight = 0;
@@ -15,10 +15,25 @@ const run = () => {
 
   const now = Date.now();
   if (now - lastUpdateTimestamp >= 1000) {
-    lastUpdateTimestamp = now;
+    if (Alien.instances.size) {
+      // Move all enemies
+      for (const [_, instance] of Alien.instances.entries()) {
+        instance.move(0, ENEMY_MOVE_PIXEL);
+      }
+
+      // Check for collisions. If an enemy passes threshold, game over.
+      for (const [_, instance] of Alien.instances.entries()) {
+        if (instance.coords.y + instance.size.height >= canvasHeight) {
+          alert("Game Over!");
+          instance.destroy();
+          window.cancelAnimationFrame(animationFrameId);
+          return;
+        }
+      }
+    }
 
     // Generate an enemy per tick until max number
-    if (!Sprite.instances.size || Sprite.instances.size < MAX_ENEMIES) {
+    if (Alien.instances.size < MAX_ENEMIES) {
       const spawnEnemy = () => {
         // Min 10px, Max 100px
         const size =
@@ -39,7 +54,7 @@ const run = () => {
 
         // Check for existing enemies for possible collisions when the new enemy spawns
         // We want to avoid that, otherwise enemies spawning can stack on top of each other and it does not look nice.
-        for (const [_, instance] of Sprite.instances.entries()) {
+        for (const [_, instance] of Alien.instances.entries()) {
           if (canSpawn) {
             const instanceLeftSideXAxis = instance.coords.x;
             const instanceRightSideXAxis =
@@ -88,29 +103,14 @@ const run = () => {
 
         // If the spawning can't be done this time, then just try again on the next
         if (canSpawn) {
-          new Sprite(canvas)
-            .setSize(size, size)
-            .render(xAxis < 0 ? 0 : xAxis, 0);
+          new Alien(canvas, size).render(xAxis);
         }
       };
 
       spawnEnemy();
     }
 
-    // Move all enemies
-    for (const [_, instance] of Sprite.instances.entries()) {
-      instance.move(0, ENEMY_MOVE_PIXEL);
-    }
-
-    // Check for colliions. If an enemy passes threshold, game over.
-    for (const [_, instance] of Sprite.instances.entries()) {
-      if (instance.coords.y + instance.size.height >= canvasHeight) {
-        alert("Game Over!");
-        instance.destroy();
-        window.cancelAnimationFrame(animationFrameId);
-        return;
-      }
-    }
+    lastUpdateTimestamp = now;
   }
 
   animationFrameId = window.requestAnimationFrame(run);
@@ -127,7 +127,5 @@ window.addEventListener("DOMContentLoaded", () => {
     window.getComputedStyle(canvas).height.replace("px", "")
   );
 
-  button.addEventListener("click", () => {
-    animationFrameId = window.requestAnimationFrame(run);
-  });
+  button.addEventListener("click", run);
 });

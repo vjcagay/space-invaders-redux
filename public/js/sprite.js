@@ -131,12 +131,13 @@ class Sprite {
   /**
    * Render this class instance into the canvas. You can optionally specify with location in the canvas this class
    *   will render in pixels.
-   * @param x x-axis. The default value is 0px.
-   * @param y y-axis. The default value is 0px.
+   * @param x (number) x-axis. The default value is 0px.
+   * @param y (number) y-axis. The default value is 0px.
+   * @param performFirstStep (boolean). Should rendering automatically perform the first step. Default is `true`.
    */
-  render(x = 0, y = 0) {
+  render(x = 0, y = 0, performFirstStep = true) {
     this.el.style.position = "absolute";
-    this.move(x, y, false);
+    this.move(x, y, performFirstStep);
     this.canvas.appendChild(this.el);
 
     return this;
