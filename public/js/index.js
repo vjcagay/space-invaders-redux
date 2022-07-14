@@ -13,6 +13,7 @@ const ENEMY_MOVE_PIXEL = 10;
 const ENEMY_SIZE_MULTIPLIER = 10;
 
 let turret;
+let missile;
 
 const run = () => {
   // Objects move downwards
@@ -113,7 +114,9 @@ const run = () => {
 
         // If the spawning can't be done this time, then just try again on the next
         if (canSpawn) {
-          new Alien(canvas, size).render(xAxis);
+          new Alien(canvas, size)
+            .render(xAxis)
+            .onPress(moveTurretAndFireToTarget);
         }
       };
 
@@ -124,6 +127,26 @@ const run = () => {
   }
 
   animationFrameId = window.requestAnimationFrame(run);
+};
+
+const moveTurretAndFireToTarget = (target) => {
+  const targetXAxis = target.coords.x;
+  const targetWidth = target.size.width;
+
+  const turretXAxis = turret.coords.x;
+  const turretWidth = turret.size.width;
+
+  /**
+   *    _______
+   *  @| ALIEN |@
+   *   |_______|
+   *
+   *       *
+   *      _|_  <-- Turret must move to the alien's center
+   */
+  const xAxisValueToMoveInto = targetWidth / 2 - turretWidth / 2 + targetXAxis;
+
+  turret.move(xAxisValueToMoveInto - turretXAxis, 0);
 };
 
 window.addEventListener("DOMContentLoaded", () => {
