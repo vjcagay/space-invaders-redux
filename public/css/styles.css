@@ -16,11 +16,9 @@ body {
 }
 
 .alien,
-.turret {
+.turret,
+.missile {
   background-image: url("/img/sprites.png");
   background-size: cover;
   cursor: pointer;
-}
-
-.turret {
 }

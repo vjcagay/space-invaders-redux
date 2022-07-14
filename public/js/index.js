@@ -1,4 +1,5 @@
 import { Alien } from "./characters/alien.js";
+import { Missile } from "./characters/missile.js";
 import { Turret } from "./characters/turret.js";
 import { Sprite } from "./components/sprite.js";
 
@@ -147,6 +148,19 @@ const moveTurretAndFireToTarget = (target) => {
   const xAxisValueToMoveInto = targetWidth / 2 - turretWidth / 2 + targetXAxis;
 
   turret.move(xAxisValueToMoveInto - turretXAxis, 0);
+
+  // Let's load the missile
+  missile = new Missile(canvas);
+
+  // We want the missile to show in the middle of the turret
+  const missileXAxis =
+    turret.coords.x + (turretWidth / 2 - missile.size.width / 2);
+
+  // Let's add some 10px so that the missile will render above the turret
+  const missileYAxis = canvasHeight - turret.size.height - 10;
+
+  // Fire away
+  missile.render(missileXAxis, missileYAxis);
 };
 
 window.addEventListener("DOMContentLoaded", () => {
