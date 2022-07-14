@@ -17,6 +17,9 @@ let button;
 let speedDial;
 let totalScore;
 
+let initialMessageOverlay;
+let pauseMessageOverlay;
+
 let alienLastUpdateTimeStamp = 0;
 let missileLastUpdateTimeStamp = 0;
 
@@ -108,7 +111,9 @@ const run = () => {
                   if (
                     missile.coords.y <= alienBottomSide &&
                     missile.coords.x >= alienLeftSide &&
-                    missile.coords.x <= alienRightSide
+                    missile.coords.x <= alienRightSide &&
+                    // Already dead aliens not counted!
+                    !alien.dead
                   ) {
                     alien.explode();
                     missile.destroy();
@@ -129,7 +134,7 @@ const run = () => {
 
       window.requestAnimationFrame(run);
     } else {
-      alert("Game Over!");
+      alert(`Game over!\n\nYour score: ${store.totalScore}`);
       cleanup();
     }
   }
@@ -168,6 +173,9 @@ const cleanup = () => {
   // Reset score
   store.totalScore = 0;
   totalScore.textContent = store.totalScore;
+
+  // Show the initial message overlay
+  initialMessageOverlay.style.display = "flex";
 };
 
 const updateScoreByAlienHit = (alien) => {
@@ -180,6 +188,8 @@ window.addEventListener("DOMContentLoaded", () => {
   button = document.getElementById("button");
   speedDial = document.getElementById("speed-dial");
   totalScore = document.getElementById("total-score");
+  initialMessageOverlay = document.getElementById("initial-message");
+  pauseMessageOverlay = document.getElementById("pause-message");
 
   const canvasWidth = parseInt(
     window.getComputedStyle(canvas).width.replace("px", "")
@@ -197,12 +207,21 @@ window.addEventListener("DOMContentLoaded", () => {
   button.addEventListener("click", () => {
     if (isGameOn) {
       if (isGamePaused) {
+        // Hide the pause message overlay
+        pauseMessageOverlay.style.display = "none";
+
         isGamePaused = false;
         run();
       } else {
+        // Show the pause message overlay
+        pauseMessageOverlay.style.display = "flex";
+
         isGamePaused = true;
       }
     } else {
+      // Hide the initial message overlay
+      initialMessageOverlay.style.display = "none";
+
       isGameOn = true;
       start();
     }
@@ -218,4 +237,7 @@ window.addEventListener("DOMContentLoaded", () => {
   speedDial.addEventListener("change", (event) => {
     store.speed = parseInt(event.target.value);
   });
+
+  // Perform initial cleanup
+  cleanup();
 });
