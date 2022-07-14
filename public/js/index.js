@@ -21,19 +21,29 @@ let missilePopulation = 0;
 
 let turret;
 
+// Cache the alien population so that we only need to it once every frame
+const aliens = [];
+
 const run = () => {
   const now = Date.now();
 
   // Spawn and move aliens
   if (now - alienLastUpdateTimeStamp >= 1000) {
+    aliens.length = 0;
+
     if (alienPopulation < ALIEN_MAX_POPULATION) {
       spawnAlien();
     }
 
     for (const [_, instance] of Sprite.instances.entries()) {
       if (instance.name === "alien") {
-        // Aliens move downwards
-        instance.move(0, ALIEN_MOVE_PIXEL);
+        if (instance.hasExploded) {
+          instance.destroy();
+        } else {
+          aliens.push(instance);
+          // Aliens move downwards
+          instance.move(0, ALIEN_MOVE_PIXEL);
+        }
 
         // Check if alien reaches the bottom of the canvas.
         // And if it is, game over.
@@ -61,6 +71,26 @@ const run = () => {
         if (instance.coords.y < 0) {
           instance.destroy();
           missilePopulation--;
+        } else {
+          for (const alienInstance of aliens) {
+            const alienBottomSideYAxis =
+              alienInstance.coords.y + alienInstance.size.height;
+            const alienLeftSideXAxis = alienInstance.coords.x;
+            const alienRightSideXAxis =
+              alienLeftSideXAxis + alienInstance.size.width;
+
+            if (
+              instance.coords.y <= alienBottomSideYAxis &&
+              instance.coords.x >= alienLeftSideXAxis &&
+              instance.coords.x <= alienRightSideXAxis
+            ) {
+              alienInstance.explode();
+              instance.destroy();
+
+              alienPopulation--;
+              missilePopulation--;
+            }
+          }
         }
       }
     }
@@ -142,6 +172,7 @@ const spawnAlien = () => {
   // If the spawning can't be done this time, then just try again on the next
   if (canSpawn) {
     new Alien(canvas, size).render(xAxis).onPress(moveTurretAndFireToTarget);
+    alienPopulation++;
   }
 };
 

@@ -8,7 +8,7 @@ class Missile extends Sprite {
     super(canvas);
 
     const name = "missile";
-    const size = 20;
+    const size = 10;
 
     this.setSize(size, size).setName(name);
     this.el.style.backgroundPositionY = `-${size * 23}px`;
