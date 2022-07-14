@@ -28,7 +28,7 @@ class Alien extends Sprite {
         },
       ]);
 
-    this.hasExploded = false;
+    this.dead = false;
 
     this.pressListener = () => {};
   }
@@ -63,7 +63,7 @@ class Alien extends Sprite {
       this.pressListener(this);
     });
     this.pressListener = () => {};
-    this.hasExploded = true;
+    this.dead = true;
   }
 }
 

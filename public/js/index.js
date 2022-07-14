@@ -6,8 +6,6 @@ import { Sprite } from "./components/sprite.js";
 let canvasWidth = 0;
 let canvasHeight = 0;
 
-let animationFrameId = 0;
-
 const ALIEN_MAX_POPULATION = 10;
 const ALIEN_MOVE_PIXEL = 10;
 const ALIEN_SIZE_MULTIPLIER = 10;
@@ -18,90 +16,105 @@ let missileLastUpdateTimeStamp = 0;
 
 let alienPopulation = 0;
 let missilePopulation = 0;
-
 let turret;
 
-// Cache the alien population so that we only need to it once every frame
-const aliens = [];
+let isGameOn = false;
 
 const run = () => {
-  const now = Date.now();
+  if (isGameOn) {
+    const now = Date.now();
 
-  // Spawn and move aliens
-  if (now - alienLastUpdateTimeStamp >= 1000) {
-    aliens.length = 0;
+    // Spawn and move aliens
+    if (now - alienLastUpdateTimeStamp >= 1000) {
+      // Try spawning until the max population is reached
+      if (alienPopulation < ALIEN_MAX_POPULATION) {
+        attemptToSpawn();
+      }
 
-    if (alienPopulation < ALIEN_MAX_POPULATION) {
-      spawnAlien();
-    }
+      // For each alien;
+      // 1. Check any dead aliens and remove them from the canvas
+      // 2. Living aliens will keep on moving until they reach the bottom of the canvas
+      for (const spriteInstance of Sprite.instances.values()) {
+        if (spriteInstance.name === "alien") {
+          const alien = spriteInstance;
 
-    for (const [_, instance] of Sprite.instances.entries()) {
-      if (instance.name === "alien") {
-        if (instance.hasExploded) {
-          instance.destroy();
-        } else {
-          aliens.push(instance);
-          // Aliens move downwards
-          instance.move(0, ALIEN_MOVE_PIXEL);
-        }
+          if (alien.dead) {
+            alien.destroy();
+          } else {
+            // Aliens move downwards
+            alien.move(0, ALIEN_MOVE_PIXEL);
+          }
 
-        // Check if alien reaches the bottom of the canvas.
-        // And if it is, game over.
-        if (instance.coords.y + instance.size.height >= canvasHeight) {
-          instance.explode();
-          turret.explode();
-          alert("Game Over!");
-          window.cancelAnimationFrame(animationFrameId);
-          return;
+          // Keep the game running until an alien reaches the bottom of the canvas.
+          if (alien.coords.y + alien.size.height >= canvasHeight) {
+            alien.explode();
+            turret.explode();
+
+            // Game over!
+            isGameOn = false;
+
+            // Stop the loop
+            break;
+          }
         }
       }
+
+      alienLastUpdateTimeStamp = now;
     }
 
-    alienLastUpdateTimeStamp = now;
-  }
+    // Move the missiles
+    if (now - missileLastUpdateTimeStamp >= 50) {
+      for (const spriteInstance of Sprite.instances.values()) {
+        if (spriteInstance.name === "missile") {
+          const missile = spriteInstance;
 
-  // Move the missiles
-  if (now - missileLastUpdateTimeStamp >= 50) {
-    for (const [_, instance] of Sprite.instances.entries()) {
-      if (instance.name === "missile") {
-        // Missiles move upwards
-        instance.move(0, MISSILE_MOVE_PIXEL);
+          // Missiles move upwards
+          missile.move(0, MISSILE_MOVE_PIXEL);
 
-        // If missile goes out of bounds, destroy it
-        if (instance.coords.y < 0) {
-          instance.destroy();
-          missilePopulation--;
-        } else {
-          for (const alienInstance of aliens) {
-            const alienBottomSideYAxis =
-              alienInstance.coords.y + alienInstance.size.height;
-            const alienLeftSideXAxis = alienInstance.coords.x;
-            const alienRightSideXAxis =
-              alienLeftSideXAxis + alienInstance.size.width;
+          // If missile goes out of the canvas, destroy it
+          if (missile.coords.y < 0) {
+            missile.destroy();
+            missilePopulation--;
+          } else {
+            // Check if an alien hits the missile
+            for (const anotherSpriteInstance of Sprite.instances.values()) {
+              if (anotherSpriteInstance.name === "alien") {
+                const alien = anotherSpriteInstance;
 
-            if (
-              instance.coords.y <= alienBottomSideYAxis &&
-              instance.coords.x >= alienLeftSideXAxis &&
-              instance.coords.x <= alienRightSideXAxis
-            ) {
-              alienInstance.explode();
-              instance.destroy();
+                const alienBottomSide = alien.coords.y + alien.size.height;
+                const alienLeftSide = alien.coords.x;
+                const alienRightSide = alienLeftSide + alien.size.width;
 
-              alienPopulation--;
-              missilePopulation--;
+                // If an alien hits the missile
+                // 1. Make the alien explode. It will be destroyed on the next frame update
+                // 2. Destroy the missile.
+                if (
+                  missile.coords.y <= alienBottomSide &&
+                  missile.coords.x >= alienLeftSide &&
+                  missile.coords.x <= alienRightSide
+                ) {
+                  alien.explode();
+                  missile.destroy();
+
+                  alienPopulation--;
+                  missilePopulation--;
+                }
+              }
             }
           }
         }
       }
+
+      missileLastUpdateTimeStamp = now;
     }
 
-    missileLastUpdateTimeStamp = now;
+    window.requestAnimationFrame(run);
+  } else {
+    alert("Game Over!");
   }
-
-  animationFrameId = window.requestAnimationFrame(run);
 };
 
-const spawnAlien = () => {
+const attemptToSpawn = () => {
   // Min 10px, Max 100px
   const size =
     (Math.floor(Math.random() * ALIEN_SIZE_MULTIPLIER) + 1) *
@@ -122,44 +135,44 @@ const spawnAlien = () => {
 
   // Check for existing enemies for possible collisions when the new enemy spawns
   // We want to avoid that, otherwise enemies spawning can stack on top of each other and it does not look nice.
-  for (const [_, instance] of Alien.instances.entries()) {
-    if (canSpawn) {
-      const instanceLeftSideXAxis = instance.coords.x;
-      const instanceRightSideXAxis =
-        instanceLeftSideXAxis + instance.size.width;
+  for (const spriteInstance of Sprite.instances.values()) {
+    if (canSpawn && spriteInstance.name === "alien") {
+      const alien = spriteInstance;
+
+      const alienLeftSide = alien.coords.x;
+      const alienRightSide = alienLeftSide + alien.size.width;
+      const alienTopSide = alien.coords.y;
+      const alienBottomSide = alienTopSide + alien.size.height;
+
       const spawnLeftSideXAxis = xAxis;
       const spawnRightSideXAxis = xAxis + size;
-
-      const instanceTopSideYAxis = instance.coords.y;
-      const instanceBottomSideYAxis =
-        instanceTopSideYAxis + instance.size.height;
       // Enemy spawns always at 0 so no need to check for the top side
       // So the bottom value will always correspond to the spawn's size
       const spawnBottomSideYAxis = size;
 
-      if (spawnBottomSideYAxis < instanceBottomSideYAxis) {
+      if (spawnBottomSideYAxis < alienBottomSide) {
         // These conditions will guarantee a collision, so prevent spawning
 
         // Enemy spawn's left side rests on existing enemy's body
         if (
-          spawnLeftSideXAxis >= instanceLeftSideXAxis &&
-          spawnLeftSideXAxis <= instanceRightSideXAxis
+          spawnLeftSideXAxis >= alienLeftSide &&
+          spawnLeftSideXAxis <= alienRightSide
         ) {
           canSpawn = false;
         }
 
         // Enemy spawn's right side rests on existing enemy's body
         if (
-          spawnRightSideXAxis >= instanceLeftSideXAxis &&
-          spawnRightSideXAxis <= instanceRightSideXAxis
+          spawnRightSideXAxis >= alienLeftSide &&
+          spawnRightSideXAxis <= alienRightSide
         ) {
           canSpawn = false;
         }
 
         // Enemy spawn is bigger and its body covers existing enemy
         if (
-          spawnLeftSideXAxis <= instanceLeftSideXAxis &&
-          spawnRightSideXAxis >= instanceRightSideXAxis
+          spawnLeftSideXAxis <= alienLeftSide &&
+          spawnRightSideXAxis >= alienRightSide
         ) {
           canSpawn = false;
         }
@@ -234,6 +247,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     missileLastUpdateTimeStamp = Date.now();
     alienLastUpdateTimeStamp = Date.now();
+
+    isGameOn = true;
 
     run();
   });
