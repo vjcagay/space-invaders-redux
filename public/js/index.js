@@ -1,6 +1,8 @@
+"use strict";
+
 import {
   ALIEN_MAX_POPULATION,
-  ALIEN_MOVE_PIXEL,
+  ALIEN_SIZE_MULTIPLIER,
   MISSILE_MOVE_PIXEL,
 } from "./constants.js";
 import { Turret } from "./characters/turret.js";
@@ -9,6 +11,11 @@ import { fireMissile } from "./game/fire-missile.js";
 import { moveTurretToTarget } from "./game/move-turret-to-target.js";
 import { spawnAlien } from "./game/spawn-alien.js";
 import { store } from "./store.js";
+
+let canvas;
+let button;
+let speedDial;
+let totalScore;
 
 let alienLastUpdateTimeStamp = 0;
 let missileLastUpdateTimeStamp = 0;
@@ -26,21 +33,8 @@ const run = () => {
     if (isGameOn) {
       const now = Date.now();
 
-      // Spawn and move aliens
+      // Move and spawn aliens
       if (now - alienLastUpdateTimeStamp >= 1000) {
-        // Try spawning until the max population is reached
-        if (alienPopulation < ALIEN_MAX_POPULATION) {
-          const alien = spawnAlien(canvas);
-          if (alien) {
-            alien.onPress((thisAlien) => {
-              moveTurretToTarget(turret, thisAlien);
-              fireMissile(canvas, turret);
-              missilePopulation++;
-            });
-            alienPopulation++;
-          }
-        }
-
         // For each alien;
         // 1. Check any dead aliens and remove them from the canvas
         // 2. Living aliens will keep on moving until they reach the bottom of the canvas
@@ -52,7 +46,7 @@ const run = () => {
               alien.destroy();
             } else {
               // Aliens move downwards
-              alien.move(0, ALIEN_MOVE_PIXEL);
+              alien.move(0, store.speed);
             }
 
             // Keep the game running until an alien reaches the bottom of the canvas.
@@ -66,6 +60,19 @@ const run = () => {
               // Stop the loop
               break;
             }
+          }
+        }
+
+        // Try spawning until the max population is reached
+        if (alienPopulation < ALIEN_MAX_POPULATION) {
+          const alien = spawnAlien(canvas);
+          if (alien) {
+            alien.onPress((thisAlien) => {
+              moveTurretToTarget(turret, thisAlien);
+              fireMissile(canvas, turret);
+              missilePopulation++;
+            });
+            alienPopulation++;
           }
         }
 
@@ -106,6 +113,8 @@ const run = () => {
                     alien.explode();
                     missile.destroy();
 
+                    updateScoreByAlienHit(alien);
+
                     alienPopulation--;
                     missilePopulation--;
                   }
@@ -144,20 +153,33 @@ const start = () => {
   run();
 };
 
-// Remove all the sprites in the canvas
 const cleanup = () => {
+  // Remove all the sprites in the canvas
   for (const spriteInstance of Sprite.instances.values()) {
     spriteInstance.destroy();
   }
 
+  // Reset game state
   button.textContent = "Start";
   isGameOn = false;
   isGamePaused = false;
+  speedDial.disabled = false;
+
+  // Reset score
+  store.totalScore = 0;
+  totalScore.textContent = store.totalScore;
+};
+
+const updateScoreByAlienHit = (alien) => {
+  store.totalScore = store.totalScore + 1;
+  totalScore.textContent = store.totalScore;
 };
 
 window.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.getElementById("canvas");
-  const button = document.getElementById("button");
+  canvas = document.getElementById("canvas");
+  button = document.getElementById("button");
+  speedDial = document.getElementById("speed-dial");
+  totalScore = document.getElementById("total-score");
 
   const canvasWidth = parseInt(
     window.getComputedStyle(canvas).width.replace("px", "")
@@ -186,7 +208,14 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     if (isGameOn) {
-      button.textContent = isGamePaused ? "Continue" : "Pause";
+      speedDial.disabled = true;
+      button.textContent = isGamePaused ? "Resume" : "Pause";
     }
+  });
+
+  speedDial.value = store.speed;
+
+  speedDial.addEventListener("change", (event) => {
+    store.speed = parseInt(event.target.value);
   });
 });

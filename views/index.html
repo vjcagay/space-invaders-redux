@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Dot Game</title>
+    <title>Space Invaders Redux</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" type="text/css" href="/css/styles.css" />
   </head>
   <body>
-    <div class="canvas" id="canvas"></div>
-    <button id="button">Start</button>
+    <main class="game">
+      <div class="controls">
+        <div class="controls__row margin-bottom">
+          <div class="controls__row__item">
+            <span class="total" id="total-score">0</span>
+            <br />
+            <span>Score</span>
+          </div>
+          <div class="controls__row__item">
+            <button class="button play-button" id="button">Start</button>
+          </div>
+        </div>
+        <div class="controls__row">
+          <div class="controls__row__item">
+            <input
+              class="range"
+              type="range"
+              id="speed-dial"
+              min="10"
+              max="100"
+              step="10"
+            />
+            <label for="speed">Speed</label>
+          </div>
+        </div>
+      </div>
+      <div class="view">
+        <div class="canvas" id="canvas"></div>
+        <div class=""></div>
+      </div>
+    </main>
     <script src="/js/index.js" type="module"></script>
   </body>
 </html>

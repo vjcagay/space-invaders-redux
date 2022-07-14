@@ -73,7 +73,12 @@ const spawnAlien = (canvas) => {
 
   // If the spawning can't be done this time, then just try again on the next
   if (canSpawn) {
-    const alien = new Alien(canvas, size).render(xAxis);
+    const alien = new Alien(canvas, size);
+    // Spawn the alien half off-canvas when it moves it will look like
+    // it's entering the game
+    // We use negative size value as the y-axis
+    alien.render(xAxis, -(size / 2));
+
     return alien;
   }
 
