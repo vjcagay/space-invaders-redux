@@ -6,21 +6,25 @@ import { Sprite } from "./components/sprite.js";
 let canvasWidth = 0;
 let canvasHeight = 0;
 
-let lastUpdateTimestamp = Date.now();
+let lastUpdateTimestamp = 0;
 let animationFrameId = 0;
 
 const MAX_ENEMIES = 10;
 const ENEMY_MOVE_PIXEL = 10;
 const ENEMY_SIZE_MULTIPLIER = 10;
+const MISSILE_MOVE_PIXEL = -10;
+
+let alienLastUpdateTimeStamp = 0;
+let missileLastUpdateTimeStamp = 0;
 
 let turret;
-let missile;
 
 const run = () => {
   // Objects move downwards
 
   const now = Date.now();
-  if (now - lastUpdateTimestamp >= 1000) {
+
+  if (now - alienLastUpdateTimeStamp >= 1000) {
     if (Sprite.instances.size > 1) {
       // Move all enemies
       for (const [_, instance] of Sprite.instances.entries()) {
@@ -124,7 +128,21 @@ const run = () => {
       spawnEnemy();
     }
 
-    lastUpdateTimestamp = now;
+    alienLastUpdateTimeStamp = now;
+  }
+
+  // Move the missiles
+  if (now - missileLastUpdateTimeStamp >= 50) {
+    for (const [_, instance] of Sprite.instances.entries()) {
+      if (instance.name === "missile") {
+        instance.move(0, MISSILE_MOVE_PIXEL);
+        if (instance.coords.y < 0) {
+          instance.destroy();
+        }
+      }
+    }
+
+    missileLastUpdateTimeStamp = now;
   }
 
   animationFrameId = window.requestAnimationFrame(run);
@@ -150,7 +168,7 @@ const moveTurretAndFireToTarget = (target) => {
   turret.move(xAxisValueToMoveInto - turretXAxis, 0);
 
   // Let's load the missile
-  missile = new Missile(canvas);
+  const missile = new Missile(canvas);
 
   // We want the missile to show in the middle of the turret
   const missileXAxis =
@@ -182,6 +200,9 @@ window.addEventListener("DOMContentLoaded", () => {
       canvasWidth / 2 - turret.size.width / 2,
       canvasHeight - turret.size.height
     );
+
+    missileLastUpdateTimeStamp = Date.now();
+    alienLastUpdateTimeStamp = Date.now();
 
     run();
   });

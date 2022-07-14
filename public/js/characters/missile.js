@@ -7,7 +7,7 @@ class Missile extends Sprite {
   constructor(canvas) {
     super(canvas);
 
-    const name = "turret";
+    const name = "missile";
     const size = 20;
 
     this.setSize(size, size).setName(name);
