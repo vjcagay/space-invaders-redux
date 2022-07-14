@@ -1,4 +1,6 @@
-import { Alien } from "./alien.js";
+import { Alien } from "./characters/alien.js";
+import { Turret } from "./characters/turret.js";
+import { Sprite } from "./components/sprite.js";
 
 let canvasWidth = 0;
 let canvasHeight = 0;
@@ -10,22 +12,30 @@ const MAX_ENEMIES = 10;
 const ENEMY_MOVE_PIXEL = 10;
 const ENEMY_SIZE_MULTIPLIER = 10;
 
+let turret;
+
 const run = () => {
   // Objects move downwards
 
   const now = Date.now();
   if (now - lastUpdateTimestamp >= 1000) {
-    if (Alien.instances.size) {
+    if (Sprite.instances.size > 1) {
       // Move all enemies
-      for (const [_, instance] of Alien.instances.entries()) {
-        instance.move(0, ENEMY_MOVE_PIXEL);
+      for (const [_, instance] of Sprite.instances.entries()) {
+        if (instance.name === "alien") {
+          instance.move(0, ENEMY_MOVE_PIXEL);
+        }
       }
 
       // Check for collisions. If an enemy passes threshold, game over.
-      for (const [_, instance] of Alien.instances.entries()) {
-        if (instance.coords.y + instance.size.height >= canvasHeight) {
+      for (const [_, instance] of Sprite.instances.entries()) {
+        if (
+          instance.name === "alien" &&
+          instance.coords.y + instance.size.height >= canvasHeight
+        ) {
+          instance.explode();
+          turret.explode();
           alert("Game Over!");
-          instance.destroy();
           window.cancelAnimationFrame(animationFrameId);
           return;
         }
@@ -127,5 +137,15 @@ window.addEventListener("DOMContentLoaded", () => {
     window.getComputedStyle(canvas).height.replace("px", "")
   );
 
-  button.addEventListener("click", run);
+  button.addEventListener("click", () => {
+    turret = new Turret(canvas);
+
+    // Render the turret in the bottom center
+    turret.render(
+      canvasWidth / 2 - turret.size.width / 2,
+      canvasHeight - turret.size.height
+    );
+
+    run();
+  });
 });

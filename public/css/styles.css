@@ -15,8 +15,12 @@ body {
   background-color: black;
 }
 
-.alien {
+.alien,
+.turret {
   background-image: url("/img/sprites.png");
   background-size: cover;
   cursor: pointer;
+}
+
+.turret {
 }

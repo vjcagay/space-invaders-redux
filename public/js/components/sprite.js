@@ -43,6 +43,7 @@ class Sprite {
    */
   setName(name) {
     this.name = name;
+    this.el.className = name;
 
     return this;
   }

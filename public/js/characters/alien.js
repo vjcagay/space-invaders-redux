@@ -1,4 +1,4 @@
-import { Sprite } from "./sprite.js";
+import { Sprite } from "../components/sprite.js";
 
 /**
  * Creates an Alien character.
@@ -26,8 +26,7 @@ class Alien extends Sprite {
         () => {
           this.el.style.backgroundPositionY = `-${type * (size * 2) + size}px`;
         },
-      ])
-      .el.classList.add(name);
+      ]);
 
     this.pressListener = () => {};
   }
