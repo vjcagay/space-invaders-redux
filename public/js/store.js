@@ -4,6 +4,7 @@ const store = {
   canvasHeight: 0,
   speed: 10,
   totalScore: 0,
+  topScore: 0,
 };
 
 export { store };

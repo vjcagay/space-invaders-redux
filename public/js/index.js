@@ -16,6 +16,7 @@ let canvas;
 let button;
 let speedDial;
 let totalScore;
+let topScore;
 
 let initialMessageOverlay;
 let pauseMessageOverlay;
@@ -222,15 +223,23 @@ const cleanup = () => {
   isGamePaused = false;
   speedDial.disabled = false;
 
-  // Reset score
-  store.totalScore = 0;
-  totalScore.textContent = store.totalScore;
-
   // Hide the game over message overlay
   gameOverMessageOverlay.style.display = "none";
 
   // Show the initial message overlay
   initialMessageOverlay.style.display = "flex";
+
+  // Update the top score
+  store.topScore = parseInt(localStorage.getItem("TOP_SCORE")) || 0;
+  if (store.topScore < store.totalScore) {
+    store.topScore = store.totalScore;
+    localStorage.setItem("TOP_SCORE", store.topScore);
+  }
+  topScore.textContent = store.topScore;
+
+  // Reset score
+  store.totalScore = 0;
+  totalScore.textContent = store.totalScore;
 };
 
 const updateScoreByAlienHit = (alien) => {
@@ -255,6 +264,7 @@ window.addEventListener("DOMContentLoaded", () => {
   button = document.getElementById("button");
   speedDial = document.getElementById("speed-dial");
   totalScore = document.getElementById("total-score");
+  topScore = document.getElementById("top-score");
   initialMessageOverlay = document.getElementById("initial-message");
   pauseMessageOverlay = document.getElementById("pause-message");
   gameOverMessageOverlay = document.getElementById("game-over-message");
