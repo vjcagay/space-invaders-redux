@@ -234,7 +234,19 @@ const cleanup = () => {
 };
 
 const updateScoreByAlienHit = (alien) => {
-  store.totalScore = store.totalScore + 1;
+  // ALIEN_SIZE_MULTIPLIER * 10
+  const maxAlienSize = 100;
+
+  // The bigger the alien, the smaller the score
+  // On the slowest speed, the biggest alien will be 1 point, while the smallest will be 10
+  let points =
+    (maxAlienSize - alien.size.width + ALIEN_SIZE_MULTIPLIER) /
+    ALIEN_SIZE_MULTIPLIER;
+
+  // The faster the alien, the bigger points the player earns
+  points *= store.speed / ALIEN_SIZE_MULTIPLIER;
+
+  store.totalScore += points;
   totalScore.textContent = store.totalScore;
 };
 
@@ -259,6 +271,7 @@ window.addEventListener("DOMContentLoaded", () => {
   store.canvasWidth = canvasWidth;
   store.canvasHeight = canvasHeight;
 
+  // Alien will move by the value of the speed dial
   speedDial.value = store.speed;
   speedDial.addEventListener("change", (event) => {
     store.speed = parseInt(event.target.value);
