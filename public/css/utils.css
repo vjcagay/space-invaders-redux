@@ -1,0 +1,10 @@
+/* UTILITIES */
+
+.margin-bottom {
+  margin-bottom: 16px;
+}
+
+.flex-shrink {
+  flex-grow: 0;
+  flex-shrink: 1;
+}

@@ -19,18 +19,25 @@ let totalScore;
 
 let initialMessageOverlay;
 let pauseMessageOverlay;
+let gameOverMessageOverlay;
 
 let alienLastUpdateTimeStamp = 0;
 let missileLastUpdateTimeStamp = 0;
 
 let alienPopulation = 0;
 let missilePopulation = 0;
-let turret;
+let turret = null;
 
 let isGameOn = false;
 let isGamePaused = false;
 
-// Do what need to be done each update
+// This function:
+// 1. Updates the position of aliens and missiles
+// 2. Spawns aliens
+// 3. Checks for collisions
+// 4. Removes dead aliens from view
+// 5. Removes missiles if they go out of the canvas or hit an alien
+// 6. Reruns itself every frame
 const run = () => {
   if (!isGamePaused) {
     if (isGameOn) {
@@ -134,17 +141,24 @@ const run = () => {
 
       window.requestAnimationFrame(run);
     } else {
-      alert(`Game over!\n\nYour score: ${store.totalScore}`);
-      cleanup();
+      stop();
     }
   }
 };
 
 // Start the game
 const start = () => {
-  turret = new Turret(canvas);
+  // Hide the initial message overlay
+  initialMessageOverlay.style.display = "none";
+
+  // Change button text
+  button.textContent = "Pause";
+
+  // Disable adjusting the speed of the aliens
+  speedDial.disabled = true;
 
   // Render the turret in the bottom center
+  turret = new Turret(canvas);
   turret.render(
     store.canvasWidth / 2 - turret.size.width / 2,
     store.canvasHeight - turret.size.height
@@ -158,11 +172,49 @@ const start = () => {
   run();
 };
 
+const pause = () => {
+  // Show the pause message overlay
+  pauseMessageOverlay.style.display = "flex";
+
+  // Change button text
+  button.textContent = "Resume";
+
+  isGamePaused = true;
+};
+
+const resume = () => {
+  // Hide the pause message overlay
+  pauseMessageOverlay.style.display = "none";
+
+  // Change button text
+  button.textContent = "Pause";
+
+  isGamePaused = false;
+
+  run();
+};
+
+const stop = () => {
+  // Show the game over message overlay
+  gameOverMessageOverlay.style.display = "flex";
+
+  // Change button text
+  button.textContent = "Reset";
+};
+
 const cleanup = () => {
   // Remove all the sprites in the canvas
   for (const spriteInstance of Sprite.instances.values()) {
     spriteInstance.destroy();
   }
+
+  alienLastUpdateTimeStamp = 0;
+  missileLastUpdateTimeStamp = 0;
+
+  alienPopulation = 0;
+  missilePopulation = 0;
+
+  turret = null;
 
   // Reset game state
   button.textContent = "Start";
@@ -173,6 +225,9 @@ const cleanup = () => {
   // Reset score
   store.totalScore = 0;
   totalScore.textContent = store.totalScore;
+
+  // Hide the game over message overlay
+  gameOverMessageOverlay.style.display = "none";
 
   // Show the initial message overlay
   initialMessageOverlay.style.display = "flex";
@@ -190,6 +245,7 @@ window.addEventListener("DOMContentLoaded", () => {
   totalScore = document.getElementById("total-score");
   initialMessageOverlay = document.getElementById("initial-message");
   pauseMessageOverlay = document.getElementById("pause-message");
+  gameOverMessageOverlay = document.getElementById("game-over-message");
 
   const canvasWidth = parseInt(
     window.getComputedStyle(canvas).width.replace("px", "")
@@ -203,41 +259,29 @@ window.addEventListener("DOMContentLoaded", () => {
   store.canvasWidth = canvasWidth;
   store.canvasHeight = canvasHeight;
 
-  // Button that switches its text to "Start"/"Pause"/"Continue"
-  button.addEventListener("click", () => {
-    if (isGameOn) {
-      if (isGamePaused) {
-        // Hide the pause message overlay
-        pauseMessageOverlay.style.display = "none";
-
-        isGamePaused = false;
-        run();
-      } else {
-        // Show the pause message overlay
-        pauseMessageOverlay.style.display = "flex";
-
-        isGamePaused = true;
-      }
-    } else {
-      // Hide the initial message overlay
-      initialMessageOverlay.style.display = "none";
-
-      isGameOn = true;
-      start();
-    }
-
-    if (isGameOn) {
-      speedDial.disabled = true;
-      button.textContent = isGamePaused ? "Resume" : "Pause";
-    }
-  });
-
   speedDial.value = store.speed;
-
   speedDial.addEventListener("change", (event) => {
     store.speed = parseInt(event.target.value);
   });
 
-  // Perform initial cleanup
+  // Button that toggles to Start/Pause/Resume/Reset
+  button.addEventListener("click", () => {
+    // If game is on, toggle pause/resume
+    if (isGameOn) {
+      isGamePaused ? resume() : pause();
+      return;
+    }
+
+    // If game is not on but there are sprites in the canvas
+    // then it's game over and player should reset game
+    if (!isGameOn && Sprite.instances.size) {
+      cleanup();
+      return;
+    }
+
+    // Otherwise start the game!
+    start();
+  });
+
   cleanup();
 });
