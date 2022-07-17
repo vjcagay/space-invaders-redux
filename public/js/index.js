@@ -310,11 +310,11 @@ window.addEventListener("DOMContentLoaded", () => {
   cleanup();
 });
 
-// Automatically pause if the game lose visibility
+// Automatically pause if the game lose visibility, e.g.
 // - Changed browser tabs
 // - Minimized browser
 window.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden" && !isGamePaused) {
+  if (document.visibilityState === "hidden" && isGameOn && !isGamePaused) {
     pause();
   }
 });
