@@ -306,5 +306,6 @@ window.addEventListener("DOMContentLoaded", () => {
     start();
   });
 
+  // Do initial cleanup
   cleanup();
 });

@@ -1,88 +1,103 @@
 import { Alien } from "../characters/alien.js";
 import { Sprite } from "../components/sprite.js";
-import { ALIEN_SIZE_MULTIPLIER } from "../constants.js";
+import {
+  ALIEN_SIZE_MULTIPLIER,
+  ALIEN_SPAWN_MAX_ATTEMPTS,
+} from "../constants.js";
 import { store } from "../store.js";
 
 const spawnAlien = (canvas) => {
-  // Min 10px, Max 100px
-  const size =
-    (Math.floor(Math.random() * ALIEN_SIZE_MULTIPLIER) + 1) *
-    ALIEN_SIZE_MULTIPLIER;
-  let xAxis = Math.floor(Math.random() * store.canvasWidth + 1) - size;
+  let spawn = null;
+  let attempts = 0;
 
-  // Enemy should not hang off the left edge of the canvas
-  if (xAxis < 0) {
-    xAxis = 0;
-  }
+  const attemptSpawn = () => {
+    attempts++;
 
-  // Enemy should not hang off the right edge of the canvas
-  if (xAxis + size > store.canvasWidth) {
-    xAxis = store.canvasWidth - size;
-  }
+    // Min 10px, Max 100px
+    const size =
+      (Math.floor(Math.random() * ALIEN_SIZE_MULTIPLIER) + 1) *
+      ALIEN_SIZE_MULTIPLIER;
+    let xAxis = Math.floor(Math.random() * store.canvasWidth + 1) - size;
 
-  let canSpawn = true;
+    // Enemy should not hang off the left edge of the canvas
+    if (xAxis < 0) {
+      xAxis = 0;
+    }
 
-  // Check for existing enemies for possible collisions when the new enemy spawns
-  // We want to avoid that, otherwise enemies spawning can stack on top of each other and it does not look nice.
-  for (const spriteInstance of Sprite.instances.values()) {
-    if (canSpawn && spriteInstance.name === "alien") {
-      const alien = spriteInstance;
+    // Enemy should not hang off the right edge of the canvas
+    if (xAxis + size > store.canvasWidth) {
+      xAxis = store.canvasWidth - size;
+    }
 
-      const alienLeftSide = alien.coords.x;
-      const alienRightSide = alienLeftSide + alien.size.width;
-      const alienTopSide = alien.coords.y;
-      const alienBottomSide = alienTopSide + alien.size.height;
+    let canSpawn = true;
 
-      const spawnLeftSideXAxis = xAxis;
-      const spawnRightSideXAxis = xAxis + size;
-      // Enemy spawns always at 0 so no need to check for the top side
-      // So the bottom value will always correspond to the spawn's size
-      const spawnBottomSideYAxis = size;
+    // Check for existing enemies for possible collisions when the new enemy spawns
+    // We want to avoid that, otherwise enemies spawning can stack on top of each other and it does not look nice.
+    for (const spriteInstance of Sprite.instances.values()) {
+      if (canSpawn && spriteInstance.name === "alien") {
+        const alien = spriteInstance;
 
-      if (spawnBottomSideYAxis < alienBottomSide) {
-        // These conditions will guarantee a collision, so prevent spawning
+        const alienLeftSide = alien.coords.x;
+        const alienRightSide = alienLeftSide + alien.size.width;
+        const alienTopSide = alien.coords.y;
+        const alienBottomSide = alienTopSide + alien.size.height;
 
-        // Enemy spawn's left side rests on existing enemy's body
-        if (
-          spawnLeftSideXAxis >= alienLeftSide &&
-          spawnLeftSideXAxis <= alienRightSide
-        ) {
+        const spawnLeftSideXAxis = xAxis;
+        const spawnRightSideXAxis = xAxis + size;
+        // Enemy spawns always at 0 so no need to check for the top side
+        // So the bottom value will always correspond to the spawn's size
+        const spawnBottomSideYAxis = size;
+
+        if (spawnBottomSideYAxis < alienBottomSide) {
+          // These conditions will guarantee a collision, so prevent spawning
+
+          // Enemy spawn's left side rests on existing enemy's body
+          if (
+            spawnLeftSideXAxis >= alienLeftSide &&
+            spawnLeftSideXAxis <= alienRightSide
+          ) {
+            canSpawn = false;
+          }
+
+          // Enemy spawn's right side rests on existing enemy's body
+          if (
+            spawnRightSideXAxis >= alienLeftSide &&
+            spawnRightSideXAxis <= alienRightSide
+          ) {
+            canSpawn = false;
+          }
+
+          // Enemy spawn is bigger and its body covers existing enemy
+          if (
+            spawnLeftSideXAxis <= alienLeftSide &&
+            spawnRightSideXAxis >= alienRightSide
+          ) {
+            canSpawn = false;
+          }
+        } else {
           canSpawn = false;
         }
-
-        // Enemy spawn's right side rests on existing enemy's body
-        if (
-          spawnRightSideXAxis >= alienLeftSide &&
-          spawnRightSideXAxis <= alienRightSide
-        ) {
-          canSpawn = false;
-        }
-
-        // Enemy spawn is bigger and its body covers existing enemy
-        if (
-          spawnLeftSideXAxis <= alienLeftSide &&
-          spawnRightSideXAxis >= alienRightSide
-        ) {
-          canSpawn = false;
-        }
-      } else {
-        canSpawn = false;
       }
     }
-  }
 
-  // If the spawning can't be done this time, then just try again on the next
-  if (canSpawn) {
-    const alien = new Alien(canvas, size);
-    // Spawn the alien half off-canvas when it moves it will look like
-    // it's entering the game
-    // We use negative size value as the y-axis
-    alien.render(xAxis, -(size / 2));
+    // If the spawning can't be done this time, then just try again on the next
+    if (canSpawn) {
+      spawn = new Alien(canvas, size);
+      // Spawn the alien half off-canvas when it moves it will look like
+      // it's entering the game
+      // We use negative size value as the y-axis
+      spawn.render(xAxis, -(size / 2));
+    } else {
+      // If spawning did not succeed, try again
+      if (attempts < ALIEN_SPAWN_MAX_ATTEMPTS) {
+        attemptSpawn();
+      }
+    }
+  };
 
-    return alien;
-  }
+  attemptSpawn();
 
-  return null;
+  return spawn;
 };
 
 export { spawnAlien };
