@@ -1,3 +1,5 @@
+"use strict";
+
 const moveTurretToTarget = (turret, target) => {
   const targetXAxis = target.coords.x;
   const targetWidth = target.size.width;

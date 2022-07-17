@@ -1,3 +1,5 @@
+"use strict";
+
 // Just a simple store for variables accessible to many parts for the app
 const store = {
   canvasWidth: 0,

@@ -1,3 +1,5 @@
+"use strict";
+
 import { Alien } from "../characters/alien.js";
 import { Sprite } from "../components/sprite.js";
 import {

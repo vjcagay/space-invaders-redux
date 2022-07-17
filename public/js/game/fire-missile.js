@@ -1,3 +1,5 @@
+"use strict";
+
 import { Missile } from "../characters/missile.js";
 import { store } from "../store.js";
 

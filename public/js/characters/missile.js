@@ -1,3 +1,5 @@
+"use strict";
+
 import { Sprite } from "../components/sprite.js";
 
 /**
