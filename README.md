@@ -39,7 +39,7 @@ Chrome and Firefox in iOS (like other browsers in the platform) also uses WebKit
 
 ### Known Issues
 
-ℹ️ Chrome (Blink) 103 on Android 13 Beta 4 seems to not handle CSS `background-position` property well.
+ℹ️ Chrome (Blink) 103 on Android 13 Beta 4 seems to not handle CSS `background-position` rule well.
 
 ## Screenshots
 
@@ -55,3 +55,4 @@ Chrome and Firefox in iOS (like other browsers in the platform) also uses WebKit
 
 1. Install Node.js
 2. Run this project by executing `npm start` in the command line
+3. The server will run on a chosen port number
