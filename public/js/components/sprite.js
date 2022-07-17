@@ -1,5 +1,15 @@
 "use strict";
 
+// https://www.sobyte.net/post/2022-02/js-crypto-randomuuid/
+// crypto.UUID() does not work in iOS 15.4 Safari so we have to "ponyfill" it
+const uuidv4 = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    var r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 /**
  * Base class for creating a character.
  */
@@ -11,7 +21,7 @@ class Sprite {
    */
   constructor(canvas) {
     // If this instance is destroyed, it's easier to locate on the Map.
-    this.uuid = crypto.randomUUID();
+    this.uuid = crypto.randomUUID?.() || uuidv4();
 
     this.canvas = canvas;
 
