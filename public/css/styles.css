@@ -16,13 +16,28 @@ body {
   color: white;
 }
 
+/* Makes sure common devices regardless of screen size will get render
+the game in the same dimensions for fairness */
+html {
+  height: calc(100% + env(safe-area-inset-top));
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+}
+
 /* APP LAYOUT */
 
 .game {
-  height: 100vh;
-  width: 100wh;
+  /* Lock the game dimensions no matter which device for fairness */
+  height: 548px;
+  width: 375px;
   display: flex;
   flex-direction: column;
+  margin: auto;
 }
 
 .total-score {
